@@ -30,8 +30,57 @@ options(
 scale_colour_discrete = scale_colour_viridis_d
 scale_fill_discrete = scale_fill_viridis_d
 ```
-
-
-
-
 #Problem 1
+
+```{r load in, explore}
+data("instacart")
+```
+This large dataset describes online grocery store purchases and contains `r ncol(instacart)` columns and a whopping `r nrow(instacart)` rows, where each row is a product from a user's order. The products are organized by characteristics like the department, aisle, name, and numeric code, plus whether the product was reordered by the user, in what order it was added to the user's cart, the day of the week, days since its last order, and more. The users are demarcated by ID. 
+
+```{r answer to how many aisles and which are most popular, results = 'hide'}
+instacart %>% 
+  count(aisle) %>% 
+    arrange(desc(n))
+```
+Fresh vegetables, fresh fruits, and packaged vegetables & fruits are the top three aisles from which products are most commonly ordered. 
+```{r plot per-aisle orders, limiting to 10,000+ orders}
+instacart %>% 
+	count(aisle) %>% 
+	filter(n > 10000) %>% 
+	mutate(
+		aisle = factor(aisle),
+		aisle = fct_reorder(aisle, n)
+	) %>% 
+	ggplot(aes(x = aisle, y = n)) + 
+	geom_point() + 
+	theme(axis.text.x = element_text(angle = -90, vjust = .5, hjust = 1))
+```
+It appears that fresh vegetables and fresh fruits in particular are ordered with a much higher frequency than other aisles, and packaged fruits and vegetables is a distant yet still popular third. There is a sharp decrease to less popular aisles after the first two aisles, and the frequency levels out steadily after the first ten or so most popular aisles.
+
+Table time! Most popular items in each of 3 specific aisles, along with the number of times they were ordered.
+```{r table}
+instacart %>% 
+	filter(aisle %in% c("baking ingredients", "dog food care", "packaged vegetables fruits")) %>% 
+	group_by(aisle) %>% 
+	count(product_name) %>% 
+	mutate(rank = min_rank(desc(n))) %>% 
+	filter(rank < 4) %>% 
+	arrange(aisle, rank) %>% 
+	knitr::kable()
+```
+Packaged fruits have the most orders among these (as noted, a very popular category). Spinach, raspberries, and blueberries are the most popular. Baking products (brown sugar, baking soda, cane sugar) sound great. Dog food and care have low order numbers in comparison, and are in order of treats, food, and biscuits.
+```{r table time part two}
+instacart %>% 
+	filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) %>% 
+	group_by(product_name, order_dow) %>% 
+	summarize(mean_hour = mean(order_hour_of_day)) %>% 
+	pivot_wider(
+		names_from = order_dow,
+		values_from = mean_hour
+	)
+```
+Here, we can see that the mean hour of product ordering tends to be between the 11.0 and 15.5 hours of the day (11am and 3:30pm). The overall latest ordering day of the week seems to be Wednesday, and the earliest seems to be Friday. 
+
+# Problem Two
+
+
