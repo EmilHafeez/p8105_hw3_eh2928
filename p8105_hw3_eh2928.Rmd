@@ -82,7 +82,6 @@ instacart %>%
 Here, we can see that the mean hour of product ordering tends to be between the 11.0 and 15.5 hours of the day (11am and 3:30pm). The overall latest ordering day of the week seems to be Wednesday, and the earliest appears to be Friday. 
 
 # Problem Two
-
 ```{r}
 accel_df =
   read_csv(
@@ -92,6 +91,24 @@ accel_df =
     activity_1:activity_1440,
     names_to = "minute_per_day",
     values_to = "activity_count"
-  )
+  ) %>% 
+     mutate(minute_per_day = str_remove_all(minute_per_day, "activity_"),
+         minute_per_day = as.numeric(minute_per_day)) %>% 
+  mutate(day = as.factor(day),
+         day = forcats::fct_relevel(day, c("Sunday", "Monday", "Tuesday","Wednesday","Thursday","Friday","Saturday"))
+       )
+
+
+
+
 ```
+
+
+
+
+
+
+
+Reorder the days of the week in the dataset
+I notice that there are 50,400 observations (minutes) but there should be (1400*35) = `r format((1400*35),scientific=FALSE)` observations. Let's return to this.
 
