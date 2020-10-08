@@ -79,8 +79,19 @@ instacart %>%
 		values_from = mean_hour
 	)
 ```
-Here, we can see that the mean hour of product ordering tends to be between the 11.0 and 15.5 hours of the day (11am and 3:30pm). The overall latest ordering day of the week seems to be Wednesday, and the earliest seems to be Friday. 
+Here, we can see that the mean hour of product ordering tends to be between the 11.0 and 15.5 hours of the day (11am and 3:30pm). The overall latest ordering day of the week seems to be Wednesday, and the earliest appears to be Friday. 
 
 # Problem Two
 
+```{r}
+accel_df =
+  read_csv(
+      "./data/accel_data.csv") %>% 
+  janitor::clean_names() %>% 
+  pivot_longer(
+    activity_1:activity_1440,
+    names_to = "minute_per_day",
+    values_to = "activity_count"
+  )
+```
 
