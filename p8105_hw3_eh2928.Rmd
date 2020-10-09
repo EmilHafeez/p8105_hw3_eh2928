@@ -123,5 +123,17 @@ accel_df %>%
 There are no strongly identifiable trends in terms of which individual days display highest total daily activity, though it does appear that the weekend and weekdays adjacent to the weekend have more activity than days in the middle of the week.
 
 Now, we make a single-panel plot that shows the 24-hour activity time courses for each day and use color to indicate day of the week. Describe in words any patterns or conclusions you can make based on this graph.
-
-
+```{r}
+ggp_24_hour_activities =
+accel_df %>% 
+  ggplot(aes(x = minute_per_day, y = activity_count)) + 
+  geom_line(aes(color = day_of_week), alpha = .15) + 
+  geom_smooth(aes(color = day_of_week), alpha = 0.2, size = .75)
+  labs(
+    title = "Daily Activity Plot",
+    x = "Minute Per Day (1440 per 24 hours)",
+    y = "Activity Count (per accelerometer)",
+    caption = "63 year old male, BMI 25, Congestive Heart Failure, Columbia University Medical Center")
+ggp_24_hour_activities
+```
+This graph 
