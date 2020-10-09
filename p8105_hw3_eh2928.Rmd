@@ -12,6 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 #Load relevant libraries, including for Problems 1 and 3
 library(tidyverse)
 library(p8105.datasets)
+library(patchwork)
 
 #Prep for neater output
 knitr::opts_chunk$set(
@@ -185,71 +186,45 @@ ny_noaa %>%
     title = "Mean Maximum Temperatures in NY State, January and July",
     x = "Year",
     y = "Mean Max Temperature (in °C)",
-    caption = "From NY_NOAA Dataset") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+    caption = "From NY_NOAA Dataset")
 ```
 The graph shows a distinctly higher average max temperature in July versus January, and a few outliers in both months. There appear to be more max temperature irregularities in January than in July; additionally, January shows a few uncharacteristically warm days and July shows a few uncharacteristically colder days. Overall, of concern and not unrelated to narratives regarding global warming trends. 
 
 Finally, we make a two-panel plot showing tmax vs tmin for the full dataset, and then make a plot showing the distribution of snowfall values greater than 0 and less than 100.
 
-```{r}
+```{r hexplot}
+ggp_max_min_hex = 
+ny_noaa %>% 
+  select(id, year, month, tmax, tmin) %>%
+  pivot_longer(
+      tmax:tmin,
+      names_to = "observation",
+      values_to = "temperature"
+              ) %>% 
+  ggplot(aes(x = year, y = temperature)) + 
+  geom_hex(aes(color = temperature), alpha = .5) + 
+  facet_grid(. ~ observation) +
+  labs(
+    title = "Distributions of Maximum and Minimum Temperatures in NY State, 1981-2010",
+    x = "Year",
+    y = "Mean Max Temperature (in °C)",
+    caption = "From NY_NOAA Dataset") +
+  theme(plot.title = element_text(hjust = .5))
+```
+```{r snowfall dists}
+ggp_snow = 
+ny_noaa %>% 
+  select(id, year, month, tmax, tmin, snow) %>%
+  filter(snow > 0, snow < 100) %>% 
+  ggplot(aes(x = year, y = snow, color = year, group = year)) + 
+  geom_boxplot(alpha = .4) + 
+  labs(
+    title = "Distributions of Snowfall in NY State, 1981-2010",
+    x = "Year",
+    y = "Snowfall in millimeters",
+    caption = "From NY_NOAA Dataset") +
+  theme(plot.title = element_text(hjust = .5))
 
+ggp_max_min_hex / ggp_snow
 ```
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-ggp_max_temps =
-ny_noaa %>% 
-  group_by(id, year, month) %>%
-  filter(snow >= 0) %>% 
-  summarize(mean_tmax = mean(tmax, na.rm = TRUE)) %>%
-  ungroup() %>% 
-  select(everything()) %>% 
-  pivot_longer(
-      tmax:tmin,
-      names_to = "observation",
-      values_to = "temperature"
-              ) %>% 
-  filter(month == c(1 | 7)) %>% 
-  ggplot(aes(x = year, y = mean_tmax)) + 
-  geom_density(aes(color = mean_tmax), alpha = .5) + 
-  facet_grid(~month) +
-  labs(
-    title = "Mean Maximum Temperatures in NY State, January and July",
-    x = "Year",
-    y = "Mean Max Temperature (in °C)",
-    caption = "From NY_NOAA Dataset") 
-    
-ggp_max_temps =
-ny_noaa %>% 
-  pivot_longer(
-      tmax:tmin,
-      names_to = "observation",
-      values_to = "temperature"
-              ) %>% 
-  group_by(id, year, month) %>%
-  filter(observation == "tmax") %>% 
-  summarize(mean_tmax = mean(tmax, na.rm = TRUE)) %>%
-  filter(month == c(1 | 7)) %>% 
-  ggplot(aes(x = year, y = mean_tmax)) + 
-  geom_density(aes(color = mean_tmax), alpha = .5) + 
-  facet_grid(~month) +
-  labs(
-    title = "Mean Maximum Temperatures in NY State, January and July",
-    x = "Year",
-    y = "Mean Max Temperature (in °C)",
-    caption = "From NY_NOAA Dataset") 
