@@ -121,19 +121,55 @@ accel_df %>%
               digits = 1)
 ```
 There are no strongly identifiable trends in terms of which individual days display highest total daily activity, though it does appear that the weekend and weekdays adjacent to the weekend have more activity than days in the middle of the week.
-
-Now, we make a single-panel plot that shows the 24-hour activity time courses for each day and use color to indicate day of the week. Describe in words any patterns or conclusions you can make based on this graph.
 ```{r}
 ggp_24_hour_activities =
 accel_df %>% 
   ggplot(aes(x = minute_per_day, y = activity_count)) + 
   geom_line(aes(color = day_of_week), alpha = .15) + 
-  geom_smooth(aes(color = day_of_week), alpha = 0.2, size = .75)
+  geom_smooth(aes(color = day_of_week), alpha = 0.2, size = .75) +
+   scale_x_continuous(
+    breaks = c(0, 360, 720, 1080, 1440), 
+    labels = c("12am", "6am", "12pm", "6pm", "12am")) +
   labs(
     title = "Daily Activity Plot",
     x = "Minute Per Day (1440 per 24 hours)",
     y = "Activity Count (per accelerometer)",
-    caption = "63 year old male, BMI 25, Congestive Heart Failure, Columbia University Medical Center")
+    caption = "63 year old male, BMI 25, Congestive Heart Failure, Columbia University Medical Center") 
 ggp_24_hour_activities
 ```
-This graph 
+This single-panel plot showing the 24 hour time courses for the individual's activity for each day (parsed by day of the week) helps illustrates that the individual tends to be less active between the hours of 12am and about 9am every day of the week (presumably asleep), as well as between about 3pm and 6pm. Overall, the individual appears to show more activity during the late morning, and in the evening between about 7:30pm and 10:30pm. Regarding days of the week, it appears that Sundays tend to be more active than other days in the late morning, and that Fridays are the most active of all days in the late evening. (Quick note: I'm (very) deuteronopic, and even with the veridis package and trying different themes, sizes, and so on, still a little hard to tell. I'll reach out for advice.)
+
+# Problem 3
+```{r load}
+data("ny_noaa")
+```
+```{r setup and EDA}
+ny_noaa %>% 
+  janitor::clean_names() %>% 
+  rename(weather_station = id) 
+```
+  mutate(minute_per_day = str_remove_all(minute_per_day, "activity_"),
+    minute_per_day = as.numeric(minute_per_day)) %>% 
+    rename(day_of_week = day) %>% 
+    mutate(day_of_week = as.factor(day_of_week),
+         day_of_week = forcats::fct_relevel(day_of_week, c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")))  %>% 
+    arrange(week,day_of_week) %>% 
+    mutate(
+      weekend = case_when(
+        day_of_week %in% c("Monday","Tuesday","Wednesday","Thursday","Friday") ~ "weekday",
+        day_of_week %in% c("Saturday","Sunday") ~ "weekend"),
+      weekend = as.factor(weekend)
+
+
+
+
+
+
+
+
+
+
+
+The NY NOAA dataset is a large rectangle of weather observations in NY state, structured by the weather station at which the data were collected, in conjunction with the date of that observation. Then, there is the total precipitation (in tenths of millimeters), specifically snow characteristics, and the temperature minimum and maximum (in celsius). 
+
+
