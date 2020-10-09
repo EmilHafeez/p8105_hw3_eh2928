@@ -92,23 +92,23 @@ accel_df =
     names_to = "minute_per_day",
     values_to = "activity_count"
   ) %>% 
-     mutate(minute_per_day = str_remove_all(minute_per_day, "activity_"),
-         minute_per_day = as.numeric(minute_per_day)) %>% 
-  mutate(day = as.factor(day),
-         day = forcats::fct_relevel(day, c("Sunday", "Monday", "Tuesday","Wednesday","Thursday","Friday","Saturday"))
-       )
+    mutate(minute_per_day = str_remove_all(minute_per_day, "activity_"),
+    minute_per_day = as.numeric(minute_per_day)) %>% 
+    rename(day_of_week = day) %>% 
+    mutate(day_of_week = as.factor(day_of_week),
+         day_of_week = forcats::fct_relevel(day_of_week, c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")))  %>% 
+  arrange(week,day_of_week) %>% 
+  mutate(
+   weekend = case_when(
+            day_of_week == c("Saturday" | "Sunday") ~ "Weekend",
+            day_of_week == c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday") ~ "Weekday"),
+     weekend = recode(weekend, weekday = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday"))
+  )
 
-
-
-
+  mutate(
+    weekend = case_when(
+            day_of_week == c("Saturday", "Sunday") ~ "Weekend",
+            day_of_week == c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday") ~ "Weekday")
+         )
 ```
-
-
-
-
-
-
-
-Reorder the days of the week in the dataset
-I notice that there are 50,400 observations (minutes) but there should be (1400*35) = `r format((1400*35),scientific=FALSE)` observations. Let's return to this.
 
