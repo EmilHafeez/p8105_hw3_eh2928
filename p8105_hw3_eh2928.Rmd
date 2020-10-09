@@ -97,18 +97,31 @@ accel_df =
     rename(day_of_week = day) %>% 
     mutate(day_of_week = as.factor(day_of_week),
          day_of_week = forcats::fct_relevel(day_of_week, c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")))  %>% 
-  arrange(week,day_of_week) %>% 
-  mutate(
-   weekend = case_when(
-            day_of_week == c("Saturday" | "Sunday") ~ "Weekend",
-            day_of_week == c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday") ~ "Weekday"),
-     weekend = recode(weekend, weekday = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday"))
-  )
-
-  mutate(
-    weekend = case_when(
-            day_of_week == c("Saturday", "Sunday") ~ "Weekend",
-            day_of_week == c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday") ~ "Weekday")
-         )
+    arrange(week,day_of_week) %>% 
+    mutate(
+      weekend = case_when(
+        day_of_week %in% c("Monday","Tuesday","Wednesday","Thursday","Friday") ~ "weekday",
+        day_of_week %in% c("Saturday","Sunday") ~ "weekend"),
+      weekend = as.factor(weekend)
+      )
 ```
+This dataset has `r ncol(accel_df)` columns now that it's been pivoted wide to long. It's tidied, using rows rather than columns to represent each minute of each of the 35 days, for a total of (35*1440) = `n nrow(accel_df)` rows. Overall, it uses a week, then day of the week, then minute per day structure to characterize activity counts over time.
+
+Now, we aggregate across minutes to create a total activity variable for each day, and create a table showing these totals. 
+```{r use group and kable to create this variable}
+accel_df %>% 
+  group_by(weekend, week, day_of_week, day_id) %>% #Choosing to include weekend here, so as to investigate trends more clearly
+  summarize(total_activity_daily = sum(activity_count)) %>% 
+  arrange(
+    desc(total_activity_daily)) %>% 
+  knitr::kable(
+              col.names =
+                c("Weekend", "Week", "Day of Week", "Day Identifier", "Total Daily Activity"),
+              align = "ccccc", 
+              digits = 1)
+```
+There are no strongly identifiable trends in terms of which individual days display highest total daily activity, though it does appear that the weekend and weekdays adjacent to the weekend have more activity than days in the middle of the week.
+
+Now, we make a single-panel plot that shows the 24-hour activity time courses for each day and use color to indicate day of the week. Describe in words any patterns or conclusions you can make based on this graph.
+
 
