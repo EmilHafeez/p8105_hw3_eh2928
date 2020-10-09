@@ -146,30 +146,24 @@ data("ny_noaa")
 ```{r setup and EDA}
 ny_noaa %>% 
   janitor::clean_names() %>% 
-  rename(weather_station = id) 
+  separate(date, into = c("year", "month", "day_of_month")) %>% 
+  mutate(
+        tmax = as.numeric(tmax),
+        tmin = as.numeric(tmin)
+        ) %>% 
+  mutate(
+        prcp = (prcp / 10),
+        tmax = (tmax / 10),
+        tmin = (tmin / 10),
+        ) %>% 
+  count(snow) %>% 
+	arrange(desc(n))
 ```
-  mutate(minute_per_day = str_remove_all(minute_per_day, "activity_"),
-    minute_per_day = as.numeric(minute_per_day)) %>% 
-    rename(day_of_week = day) %>% 
-    mutate(day_of_week = as.factor(day_of_week),
-         day_of_week = forcats::fct_relevel(day_of_week, c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")))  %>% 
-    arrange(week,day_of_week) %>% 
-    mutate(
-      weekend = case_when(
-        day_of_week %in% c("Monday","Tuesday","Wednesday","Thursday","Friday") ~ "weekday",
-        day_of_week %in% c("Saturday","Sunday") ~ "weekend"),
-      weekend = as.factor(weekend)
+The NY NOAA dataset is a large rectangle of `r nrow(ny_noaa)` weather observations in NY state, structured by `r distinct(ny_noaa, id)` weather stations at which the data were collected, in conjunction with the date of that observation. Then, there is the total precipitation (in tenths of millimeters), specifically snow characteristics, and the temperature minimum and maximum (in celsius). 
 
+The most commonly observed snowfall values is 0 (since most days in these locations, it doesn't snow!). Then, unfortunately, there are a lot of missing values for snowfall (potentially measurement error, potentially a null value), and then various millimeter values. 
 
+### Problem 3 Part 2
 
-
-
-
-
-
-
-
-
-The NY NOAA dataset is a large rectangle of weather observations in NY state, structured by the weather station at which the data were collected, in conjunction with the date of that observation. Then, there is the total precipitation (in tenths of millimeters), specifically snow characteristics, and the temperature minimum and maximum (in celsius). 
 
 
