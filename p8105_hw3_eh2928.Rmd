@@ -144,26 +144,58 @@ This single-panel plot showing the 24 hour time courses for the individual's act
 data("ny_noaa")
 ```
 ```{r setup and EDA}
+ny_noaa =
 ny_noaa %>% 
   janitor::clean_names() %>% 
   separate(date, into = c("year", "month", "day_of_month")) %>% 
   mutate(
         tmax = as.numeric(tmax),
-        tmin = as.numeric(tmin)
+        tmin = as.numeric(tmin),
+        year = as.numeric(year),
+        month = as.numeric(month),
+        day_of_month = as.numeric(day_of_month)
         ) %>% 
   mutate(
         prcp = (prcp / 10),
         tmax = (tmax / 10),
         tmin = (tmin / 10),
-        ) %>% 
+        )
+ny_noaa %>% 
   count(snow) %>% 
 	arrange(desc(n))
 ```
-The NY NOAA dataset is a large rectangle of `r nrow(ny_noaa)` weather observations in NY state, structured by `r distinct(ny_noaa, id)` weather stations at which the data were collected, in conjunction with the date of that observation. Then, there is the total precipitation (in tenths of millimeters), specifically snow characteristics, and the temperature minimum and maximum (in celsius). 
+The NY NOAA dataset is a large rectangle of `r nrow(ny_noaa)` weather observations in NY state, structured by `r distinct(ny_noaa, id) %>% count()` weather stations at which the data were collected, in conjunction with the date of that observation. Then, there is the total precipitation (in tenths of millimeters), specifically snow characteristics, and the temperature minimum and maximum (in celsius). 
 
-The most commonly observed snowfall values is 0 (since most days in these locations, it doesn't snow!). Then, unfortunately, there are a lot of missing values for snowfall (potentially measurement error, potentially a null value), and then various millimeter values. 
+The most commonly observed snowfall value by far is 0 (since most days in these locations, it doesn't snow!). Then, unfortunately, there are a lot of missing values for snowfall (potentially measurement error, potentially a null value), and then various millimeter values. 
 
 ### Problem 3 Part 2
 
+Make a two-panel plot showing the average max temperature in January and in July in each station across years. Is there any observable / interpretable structure? Any outliers?
 
+```{r}
+ggp_max_temps =
+ny_noaa %>% 
+  group_by(id, month) %>%
+  summarize(mean_tmax = mean(tmax)) %>%
+  filter(month == 1 | 7) %>% 
+  ggplot(aes(x = year, y = mean_tmax)) + 
+  geom_line(aes(color = day_of_week), alpha = .15) + 
+  geom_smooth(aes(color = day_of_week), alpha = 0.2, size = .75) +
+   scale_x_continuous(
+    breaks = c(0, 360, 720, 1080, 1440), 
+    labels = c("12am", "6am", "12pm", "6pm", "12am")) +
+  labs(
+    title = "Daily Activity Plot",
+    x = "Minute Per Day (1440 per 24 hours)",
+    y = "Activity Count (per accelerometer)",
+    caption = "63 year old male, BMI 25, Congestive Heart Failure, Columbia University Medical Center") 
+ggp_max_temps
+
+
+```
+  summarize(mean_tmax = mean(tmax)) %>%
+  ggplot(aes(x = month, y = mean_tmax, color = name)) + 
+    geom_point() + geom_line() + 
+    theme(legend.position = "bottom")
+mean_tmax = mean(tmax, na.rm = TRUE)
 
