@@ -21,7 +21,7 @@ knitr::opts_chunk$set(
 )
 
 #Trying a darker theme, at least at first
-theme_set(theme_dark() + theme(legend.position = "bottom"))
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
 options(
   ggplot2.continuous.colour = "viridis",
   ggplot2.continuous.fill = "viridis"
@@ -175,21 +175,21 @@ Make a two-panel plot showing the average max temperature in January and in July
 ```{r}
 ggp_max_temps =
 ny_noaa %>% 
-  group_by(id, month) %>%
-  summarize(mean_tmax = mean(tmax)) %>%
-  filter(month == 1 | 7) %>% 
+  group_by(id, year, month) %>%
+  filter(snow >= 0) %>% 
+  summarize(mean_tmax = mean(tmax, na.rm = TRUE)) %>%
+  
+  
+  filter(month == c(1 | 7)) %>% 
   ggplot(aes(x = year, y = mean_tmax)) + 
-  geom_line(aes(color = day_of_week), alpha = .15) + 
+  geom_point(aes(color = mean_tmax), alpha = .5) + 
   geom_smooth(aes(color = day_of_week), alpha = 0.2, size = .75) +
-   scale_x_continuous(
-    breaks = c(0, 360, 720, 1080, 1440), 
-    labels = c("12am", "6am", "12pm", "6pm", "12am")) +
   labs(
-    title = "Daily Activity Plot",
-    x = "Minute Per Day (1440 per 24 hours)",
-    y = "Activity Count (per accelerometer)",
-    caption = "63 year old male, BMI 25, Congestive Heart Failure, Columbia University Medical Center") 
-ggp_max_temps
+    title = "Mean Maximum Temperatures in NY State, January and July",
+    x = "Year",
+    y = "Mean Max Temperature (in °C)",
+    caption = "From NY_NOAA Dataset") 
+
 
 
 ```
