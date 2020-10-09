@@ -175,27 +175,81 @@ Make a two-panel plot showing the average max temperature in January and in July
 ```{r}
 ggp_max_temps =
 ny_noaa %>% 
+  filter(month %in% c(1 , 7)) %>% 
+  group_by(id, year, month) %>%
+  summarize(mean_tmax = mean(tmax, na.rm = TRUE)) %>%
+  ggplot(aes(x = year, y = mean_tmax, group = id)) + 
+  geom_point(aes(color = mean_tmax), alpha = .5) + 
+  facet_grid(. ~ month) +
+  labs(
+    title = "Mean Maximum Temperatures in NY State, January and July",
+    x = "Year",
+    y = "Mean Max Temperature (in °C)",
+    caption = "From NY_NOAA Dataset") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+```
+The graph shows a distinctly higher average max temperature in July versus January, and a few outliers in both months. There appear to be more max temperature irregularities in January than in July; additionally, January shows a few uncharacteristically warm days and July shows a few uncharacteristically colder days. Overall, of concern and not unrelated to narratives regarding global warming trends. 
+
+Finally, we make a two-panel plot showing tmax vs tmin for the full dataset, and then make a plot showing the distribution of snowfall values greater than 0 and less than 100.
+
+```{r}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ggp_max_temps =
+ny_noaa %>% 
   group_by(id, year, month) %>%
   filter(snow >= 0) %>% 
   summarize(mean_tmax = mean(tmax, na.rm = TRUE)) %>%
-  
-  
+  ungroup() %>% 
+  select(everything()) %>% 
+  pivot_longer(
+      tmax:tmin,
+      names_to = "observation",
+      values_to = "temperature"
+              ) %>% 
   filter(month == c(1 | 7)) %>% 
   ggplot(aes(x = year, y = mean_tmax)) + 
-  geom_point(aes(color = mean_tmax), alpha = .5) + 
-  geom_smooth(aes(color = day_of_week), alpha = 0.2, size = .75) +
+  geom_density(aes(color = mean_tmax), alpha = .5) + 
+  facet_grid(~month) +
   labs(
     title = "Mean Maximum Temperatures in NY State, January and July",
     x = "Year",
     y = "Mean Max Temperature (in °C)",
     caption = "From NY_NOAA Dataset") 
-
-
-
-```
-  summarize(mean_tmax = mean(tmax)) %>%
-  ggplot(aes(x = month, y = mean_tmax, color = name)) + 
-    geom_point() + geom_line() + 
-    theme(legend.position = "bottom")
-mean_tmax = mean(tmax, na.rm = TRUE)
-
+    
+ggp_max_temps =
+ny_noaa %>% 
+  pivot_longer(
+      tmax:tmin,
+      names_to = "observation",
+      values_to = "temperature"
+              ) %>% 
+  group_by(id, year, month) %>%
+  filter(observation == "tmax") %>% 
+  summarize(mean_tmax = mean(tmax, na.rm = TRUE)) %>%
+  filter(month == c(1 | 7)) %>% 
+  ggplot(aes(x = year, y = mean_tmax)) + 
+  geom_density(aes(color = mean_tmax), alpha = .5) + 
+  facet_grid(~month) +
+  labs(
+    title = "Mean Maximum Temperatures in NY State, January and July",
+    x = "Year",
+    y = "Mean Max Temperature (in °C)",
+    caption = "From NY_NOAA Dataset") 
