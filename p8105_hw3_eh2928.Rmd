@@ -64,6 +64,7 @@ instacart %>%
   theme(axis.title.y = element_text(angle = 90, vjust = .5, hjust = 1))
 
 ```
+
 It appears that fresh vegetables and fresh fruits in particular are ordered from Instacart with a much higher frequency than other aisles, where packaged fruits and vegetables is a distant yet still popular third. There is a sharp decrease to less popular aisles after the first two, and the frequency levels out steadily after the first ten or so most popular aisles.
 
 Table time! Most popular items in each of 3 specific aisles, along with the number of times they were ordered.
@@ -94,11 +95,12 @@ instacart %>%
 	pivot_wider(
 		names_from = order_dow,
 		values_from = mean_hour
-	)
+	) %>% knitr::kable(digits = 1)
 ```
 Here, we can see that the mean hour of product ordering tends to be between the 11.0 and 15.5 hours of the day (11am and 3:30pm). The overall latest ordering day of the week seems to be Wednesday, and the earliest appears to be Friday. 
 
 # Problem Two
+
 ```{r}
 accel_df =
   read_csv(
@@ -112,7 +114,8 @@ accel_df =
     mutate(minute_per_day = str_remove_all(minute_per_day, "activity_"),
     minute_per_day = as.numeric(minute_per_day)) %>% 
     rename(day_of_week = day) %>% 
-    mutate(day_of_week = as.factor(day_of_week),
+    mutate(
+      day_of_week = as.factor(day_of_week),
          day_of_week = forcats::fct_relevel(day_of_week, c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")))  %>% 
     arrange(week,day_of_week) %>% 
     mutate(
@@ -122,27 +125,29 @@ accel_df =
       weekend = as.factor(weekend)
       )
 ```
-This dataset has `r ncol(accel_df)` columns now that it's been pivoted wide to long. It's tidied, using rows rather than columns to represent each minute of each of the 35 days, for a total of (35*1440) = `n nrow(accel_df)` rows. Overall, it uses a week, then day of the week, then minute per day structure to characterize activity counts over time.
+This dataset has `r ncol(accel_df)` columns now that it's been pivoted from wide to long. It's tidied, using rows rather than columns to represent each minute of each of the 35 days, for a total of (35*1440) = `r nrow(accel_df)` rows. Overall, it uses a week, then day of the week, then minute per day structure to characterize activity counts over time.
 
 Now, we aggregate across minutes to create a total activity variable for each day, and create a table showing these totals. 
-```{r use group and kable to create this variable}
+```{r use group and kable to create this variable and table}
 accel_df %>% 
   group_by(weekend, week, day_of_week, day_id) %>% #Choosing to include weekend here, so as to investigate trends more clearly
   summarize(total_activity_daily = sum(activity_count)) %>% 
   arrange(
     desc(total_activity_daily)) %>% 
+  mutate(weekend = str_to_title(weekend)) %>%
   knitr::kable(
               col.names =
                 c("Weekend", "Week", "Day of Week", "Day Identifier", "Total Daily Activity"),
               align = "ccccc", 
               digits = 1)
 ```
-There are no strongly identifiable trends in terms of which individual days display highest total daily activity, though it does appear that the weekend and weekdays adjacent to the weekend have more activity than days in the middle of the week.
+There are no strongly identifiable trends in terms of which individual days display highest total daily activity, though it does appear that the weekend and weekdays adjacent to the weekend have more activity than days in the middle of the work week. Additionally, there are no easily identifiable trends in which certain weeks are the most active compared to others.
+
 ```{r}
 ggp_24_hour_activities =
 accel_df %>% 
   ggplot(aes(x = minute_per_day, y = activity_count)) + 
-  geom_line(aes(color = day_of_week), alpha = .15) + 
+  geom_line(aes(color = day_of_week), alpha = .20) + 
   geom_smooth(aes(color = day_of_week), alpha = 0.2, size = .75) +
    scale_x_continuous(
     breaks = c(0, 360, 720, 1080, 1440), 
@@ -154,7 +159,9 @@ accel_df %>%
     caption = "63 year old male, BMI 25, Congestive Heart Failure, Columbia University Medical Center") 
 ggp_24_hour_activities
 ```
-This single-panel plot showing the 24 hour time courses for the individual's activity for each day (parsed by day of the week) helps illustrates that the individual tends to be less active between the hours of 12am and about 9am every day of the week (presumably asleep), as well as between about 3pm and 6pm. Overall, the individual appears to show more activity during the late morning, and in the evening between about 7:30pm and 10:30pm. Regarding days of the week, it appears that Sundays tend to be more active than other days in the late morning, and that Fridays are the most active of all days in the late evening. (Quick note: I'm (very) deuteronopic, and even with the veridis package and trying different themes, sizes, and so on, still a little hard to tell. I'll reach out for advice.)
+This single-panel plot showing the 24 hour time courses for the individual's activity for each day (parsed by day of the week) helps illustrates that the individual tends to be less active between the hours of 12am and about 9am every day of the week (presumably asleep), as well as between about 3pm and 6pm. Overall, the individual appears to show more activity during the late morning, and in the evening between about 7:30pm and 10:30pm. Regarding days of the week, it appears that Sundays tend to be more active than other days in the late morning, and that Fridays are the most active of all days in the late evening. 
+
+(Quick note: I'm deuteronopic, and even with the veridis package and trying different themes, sizes, and so on, still a little hard to tell some of these colors on the legend apart, though this is the best package I tried)
 
 # Problem 3
 ```{r load}
@@ -183,13 +190,13 @@ ny_noaa %>%
 ```
 The NY NOAA dataset is a large rectangle of `r nrow(ny_noaa)` weather observations in NY state, structured by `r distinct(ny_noaa, id) %>% count()` weather stations at which the data were collected, in conjunction with the date of that observation. Then, there is the total precipitation (in tenths of millimeters), specifically snow characteristics, and the temperature minimum and maximum (in celsius). 
 
-The most commonly observed snowfall value by far is 0 (since most days in these locations, it doesn't snow!). Then, unfortunately, there are a lot of missing values for snowfall (potentially measurement error, potentially a null value), and then various millimeter values. 
+The most commonly observed snowfall value by far is 0 (since most months and days in these locations, it doesn't snow!). Then, unfortunately, there are a lot of missing values for snowfall (potentially measurement error, potentially a null value), and then various millimeter values. 
 
 ### Problem 3 Part 2
 
-Make a two-panel plot showing the average max temperature in January and in July in each station across years. Is there any observable / interpretable structure? Any outliers?
+Make a two-panel plot showing the average max temperature in January and in July in each station across years.
 
-```{r}
+```{r plotting}
 ggp_max_temps =
 ny_noaa %>% 
   filter(month %in% c(1 , 7)) %>% 
@@ -204,7 +211,7 @@ ny_noaa %>%
     y = "Mean Max Temperature (in °C)",
     caption = "From NY_NOAA Dataset")
 ```
-The graph shows a distinctly higher average max temperature in July versus January, and a few outliers in both months. There appear to be more max temperature irregularities in January than in July; additionally, January shows a few uncharacteristically warm days and July shows a few uncharacteristically colder days. Overall, of concern and not unrelated to narratives regarding global warming trends. 
+The graph shows a distinctly higher average max temperature in July versus January, and a few outliers in both months. There appear to be more mean maximum temperature irregularities in January than in July; additionally, January shows a few uncharacteristically warm days (warm outliers in winter) and July shows a few uncharacteristically cold days (colder outliers in summer). Overall, these patterns are of concern and not wholly unrelated to narratives regarding global warming trends.  Year-on-year distributions have appear to consistently overlap, and overall increase or decrease in average max temperature would require more analysis.
 
 Finally, we make a two-panel plot showing tmax vs tmin for the full dataset, and then make a plot showing the distribution of snowfall values greater than 0 and less than 100.
 
@@ -243,4 +250,3 @@ ny_noaa %>%
 
 ggp_max_min_hex / ggp_snow
 ```
-
