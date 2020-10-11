@@ -37,6 +37,7 @@ scale_fill_discrete = scale_fill_viridis_d
 data("instacart")
 ```
 This large dataset describes online grocery store purchases and contains `r ncol(instacart)` columns and a whopping `r nrow(instacart)` rows, where each row is a product from a user's order. The products are organized by characteristics like the department, aisle, name, and numeric code, plus whether the product was reordered by the user, in what order it was added to the user's cart, the day of the week, days since its last order, and more. The users are demarcated by ID. 
+There are `r instacart %>% distinct(department) %>% count()` distinct departments and `r instacart %>% distinct(aisle) %>% count()` distinct aisles.
 
 ```{r answer to how many aisles and which are most popular, results = 'hide'}
 instacart %>% 
@@ -54,9 +55,16 @@ instacart %>%
 	) %>% 
 	ggplot(aes(x = aisle, y = n)) + 
 	geom_point() + 
-	theme(axis.text.x = element_text(angle = -90, vjust = .5, hjust = 1))
+  labs(
+    title = "Instacart 2017 Orders over 10,000 units per Aisle",
+    x = "Aisle Name",
+    y = "Number of Product Orders per Aisle") +
+  scale_y_continuous(breaks = seq(0,151000,20000)) + 
+	theme(axis.text.x = element_text(angle = -90, vjust = .5, hjust = 1)) +
+  theme(axis.title.y = element_text(angle = 90, vjust = .5, hjust = 1))
+
 ```
-It appears that fresh vegetables and fresh fruits in particular are ordered with a much higher frequency than other aisles, and packaged fruits and vegetables is a distant yet still popular third. There is a sharp decrease to less popular aisles after the first two aisles, and the frequency levels out steadily after the first ten or so most popular aisles.
+It appears that fresh vegetables and fresh fruits in particular are ordered from Instacart with a much higher frequency than other aisles, where packaged fruits and vegetables is a distant yet still popular third. There is a sharp decrease to less popular aisles after the first two, and the frequency levels out steadily after the first ten or so most popular aisles.
 
 Table time! Most popular items in each of 3 specific aisles, along with the number of times they were ordered.
 ```{r table}
@@ -67,7 +75,11 @@ instacart %>%
 	mutate(rank = min_rank(desc(n))) %>% 
 	filter(rank < 4) %>% 
 	arrange(aisle, rank) %>% 
-	knitr::kable()
+  mutate(product_name = tolower(product_name)) %>% 
+	knitr::kable(
+              col.names =
+                c("Aisle", "Product Name", "Orders", "Rank within Aisle"),
+              align = "cccc")
 ```
 Packaged fruits have the most orders among these (as noted, a very popular category). Spinach, raspberries, and blueberries are the most popular. Baking products (brown sugar, baking soda, cane sugar) sound great. Dog food and care have low order numbers in comparison, and are in order of treats, food, and biscuits.
 ```{r table time part two}
@@ -75,6 +87,10 @@ instacart %>%
 	filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) %>% 
 	group_by(product_name, order_dow) %>% 
 	summarize(mean_hour = mean(order_hour_of_day)) %>% 
+  mutate(
+    order_dow = recode(order_dow, `0` = "Sunday", `1` = "Monday", `2` = "Tuesday", `3` = "Wednesday", 
+                   `4` = "Thursday", `5` = "Friday", `6` = "Saturday") 
+        ) %>% 
 	pivot_wider(
 		names_from = order_dow,
 		values_from = mean_hour
